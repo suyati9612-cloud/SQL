@@ -1,0 +1,107 @@
+create database studentsstudentsperformanceperformances;
+
+use students;
+
+show tables;
+
+select * from studentsperformance;
+
+
+-- checking the distribution on race_ethnicity
+select race_ethnicity, count(*) from studentsperformance group by race_ethnicity order by count(*) desc;
+
+-- checking the column distribution
+select gender, count(*) from studentsperformance group by gender;
+
+-- checking the distribution on parental_education
+select parental_level_of_education, count(*) from studentsperformance group by parental_level_of_education order by count(*) desc;
+
+-- checking the distribution on lunch
+select lunch, count(*) from studentsperformance group by lunch;
+
+-- checking the distribution on test_preparation
+select test_preparation_course, count(*) from studentsperformance group by test_preparation_course;
+
+select * from studentsperformance;
+
+-- the aggregate function on the math_scores
+select min(math_score) as min,max(math_score) as max, avg(math_score) as average, sum(math_score) as sum, count(*) from studentsperformance;
+
+-- the aggregate function on the reading_score
+select min(reading_score) as min,max(reading_score) as max, avg(reading_score) as average, sum(reading_score) as sum, count(*) from studentsperformance;
+
+-- the aggregate function on the writing_scores
+select min(writing_score) as min,max(writing_score) as max, avg(writing_score) as average, sum(writing_score) as sum, count(*) from studentsperformance;
+
+-- checking the highest and lowest each students obtained on these scores
+select gender, test_preparation_course, greatest(math_score,reading_score,writing_score) as highest, 
+least(math_score,reading_score,writing_score) as lowest
+from studentsperformance
+order by
+lowest
+desc;
+
+-- adding column
+set sql_safe_updates = 0;
+
+-- add a column for final marks
+alter table studentsperformance
+add column final_mark int;
+
+-- add data values into the column
+update studentsperformance
+set final_mark = (math_score+reading_score+writing_score);
+
+-- add a column for average mark
+alter table studentsperformance
+add column stu_avg float;
+
+-- add values into the stu_avg
+update studentsperformance
+set stu_avg = ((math_score+reading_score+writing_score)/3);
+
+-- add a column form percentage mark
+alter table studentsperformance
+add column stu_perc int;
+
+select * from studentsperformance;
+
+-- add values into the stu_perc
+update studentsperformance
+set stu_perc = round(((math_score+reading_score+writing_score)/(100*3)*100),0);
+
+-- delete the students average column
+alter table studentsperformance
+drop column stu_avg;
+
+-- select the top 10 students based on their final marks
+select * from studentsperformance order by final_mark asc limit 10;
+select * from studentsperformance order by final_mark desc limit 10;
+-- checking the top 10 females
+select * from studentsperformance where gender = 'female' order by final_mark asc limit 10;
+select * from studentsperformance where gender = 'female' order by final_mark desc limit 10;
+-- checking the top 10 females
+select * from studentsperformance where gender = 'male' order by final_mark asc limit 10;
+select * from studentsperformance where gender = 'male' order by final_mark desc limit 10;
+
+-- checking the highest and lowest percentage obtained
+select min(stu_perc), max(stu_perc) from studentsperformance;
+
+select * from studentsperformance where stu_perc = 9;
+
+-- check students who got the average
+select * from studentsperformance s
+join (select round(avg(stu_perc),0) stu_avg from studentsperformance) avg_stu on s.stu_perc > avg_stu.stu_avg;
+
+select count(*) from studentsperformance s
+join (select round(avg(stu_perc),0) stu_perc from studentsperformance) avg_stu on s.stu_perc > avg_stu.stu_perc;
+
+select gender, final_mark, stu_perc,
+case
+when stu_perc <= 49 then 'Not Performing'
+when stu_perc > 49 and stu_perc <= 68
+then 'Average Performers'
+when stu_perc > 68 then 'Top Performers'
+end as student_range
+from studentsperformancestudentsperformance
+order by stu_perc desc;
